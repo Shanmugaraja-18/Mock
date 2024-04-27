@@ -1,0 +1,65 @@
+package task;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+
+public class mock {
+    private WebDriver driver;
+    private String baseURL = "https://www.redbus.in/";
+
+    @BeforeClass
+    public void setUp() {
+    	System.setProperty("webdriver.chrome.driver", "D:\\chrome\\chromedriver.exe");
+        driver = new ChromeDriver();
+        driver.manage().window().maximize();
+    }
+
+    @Test
+    public void testBusAvailability() throws IOException {
+        driver.get(baseURL);
+
+        CSVParser parser = CSVParser.parse(new FileReader("D:\\Training\\new.csv"), CSVFormat.DEFAULT);
+        for (CSVRecord record : parser) {
+            String fromCity = record.get(0);
+            String toCity = record.get(1);
+            
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            String date = dateFormat.format(new Date());
+
+            WebElement fromCityInput = driver.findElement(By.xpath("//input[@id='src']"));
+            fromCityInput.clear();
+            fromCityInput.sendKeys(fromCity);
+
+            WebElement toCityInput = driver.findElement(By.xpath("//input[@id='dest']"));
+            toCityInput.clear();
+            toCityInput.sendKeys(toCity);
+
+            WebElement dateInput = driver.findElement(By.xpath("//i[@class='sc-cSHVUG NyvQv icon icon-datev2']"));
+            dateInput.click();
+
+            WebElement todayDate = driver.findElement(By.xpath("//td[@class='wd day'][contains(text(),'"+ date +"')]"));
+            todayDate.click();
+
+            WebElement searchButton = driver.findElement(By.xpath("//button[@id='search_btn']"));
+            searchButton.click();
+
+            List<WebElement> busList = driver.findElements(By.xpath("//div[@class='clearfix bus-item']"));
+            int numberOfBuses = busList.size();
+
+            System.out.println("From: " + fromCity + ", To: " + toCity + ", Date: " + date + ", Buses: " + numberOfBuses);
+        }
+        parser.close(); 
+    }
+}
